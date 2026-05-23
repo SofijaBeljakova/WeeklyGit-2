@@ -2,8 +2,8 @@ name: Daily Auto Commit
 
 on:
   schedule:
-    - cron: '0 12 * * *' 
-  workflow_dispatch: 
+    - cron: '0 12 * * *'
+  workflow_dispatch:
 
 jobs:
   commit:
@@ -16,24 +16,51 @@ jobs:
 
     - name: Set dynamic branch name
       run: |
-        START_DATE="2026-05-23"
-        TODAY=$(date +%Y-%m-%d)
-        DAYS=$(( ($(date -d "$TODAY" +%s) - $(date -d "$START_DATE" +%s)) / 86400 ))
+        export TZ="Europe/Tallinn"
+        START_SEC=$(date -d "2026-05-23" +%s)
+        CURRENT_SEC=$(date +%s)
+        DIFF_SEC=$(( CURRENT_SEC - START_SEC ))
+        DAYS=$(( DIFF_SEC / 86400 ))
         WEEK=$(( (DAYS / 7) + 1 ))
         if [ $WEEK -gt 4 ]; then WEEK=4; fi
+        if [ $WEEK -lt 1 ]; then WEEK=1; fi
         echo "BRANCH_NAME=week$WEEK" >> $GITHUB_ENV
 
     - name: Run script
-      run: python auto_commit.py
+      run: |
+        cat << 'EOF' > auto_commit.py
+import os
+from datetime import datetime, timezone, timedelta
+
+README_PATH = "README.md"
+START_DATE = datetime(2026, 5, 23, tzinfo=timezone.utc)
+
+def main():
+    ee_tz = timezone(timedelta(hours=3))
+    today = datetime.now(ee_tz)
+    delta = today.date() - START_DATE.date()
+    if delta.days < 0: return
+    day_number = delta.days + 1
+    formatted_date = today.strftime("%d.%m.%Y")
+    if not os.path.exists(README_PATH):
+        with open(README_PATH, "w", encoding="utf-8") as f:
+            f.write("# Project\n")
+    with open(README_PATH, "a", encoding="utf-8") as f:
+        f.write(f"- {formatted_date}: Päev {day_number}\n")
+
+if __name__ == "__main__":
+    main()
+EOF
+        python auto_commit.py
 
     - name: Commit and Push changes
       run: |
         git config --global user.name "GitHub Action Bot"
         git config --global user.email "actions@github.com"
-        
-        
+        if [ ! -f README.md ]; then
+          touch README.md
+        fi
         git checkout $BRANCH_NAME || git checkout -b $BRANCH_NAME
-        
         git add README.md
         git commit -m "Automatic commit for today" || echo "No changes to commit"
         git push origin $BRANCH_NAME
