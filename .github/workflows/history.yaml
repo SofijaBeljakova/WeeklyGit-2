@@ -16,7 +16,7 @@ jobs:
 
     - name: Rewrite Author Info for ALL branches
       run: |
-        # Впиши сюда свои реальные данные GitHub
+        
         CORRECT_NAME="SofijaBeljakova"
         CORRECT_EMAIL="sofija.beljakova@tptplive.ee"
         
