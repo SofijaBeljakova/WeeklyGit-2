@@ -1,10 +1,10 @@
-name: Rewrite Commit History
+name: Rewrite ALL Commit History
 
 on:
   workflow_dispatch: 
 
 jobs:
-  rewrite:
+  rewrite-all:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -14,21 +14,23 @@ jobs:
       with:
         fetch-depth: 0 
 
-    - name: Rewrite Author Info
+    - name: Rewrite Author Info for ALL branches
       run: |
-        # Замени эти данные на свои реальные!
+      
         CORRECT_NAME="SofijaBeljakova"
         CORRECT_EMAIL="sofija.beljakova@tptlive.ee"
         
-       
-        git filter-branch --env-filter "
-            export GIT_AUTHOR_NAME='\$CORRECT_NAME'
-            export GIT_AUTHOR_EMAIL='\$CORRECT_EMAIL'
-            export GIT_COMMITTER_NAME='\$CORRECT_NAME'
-            export GIT_COMMITTER_EMAIL='\$CORRECT_EMAIL'
-        " --tag-name-filter cat -- --branches --tags
-
-    - name: Force Push changes
-      run: |
+        export FILTER_BRANCH_SQUELCH_WARNING=1
         
+      
+        git filter-branch -f --env-filter "
+            export GIT_AUTHOR_NAME='$CORRECT_NAME'
+            export GIT_AUTHOR_EMAIL='$CORRECT_EMAIL'
+            export GIT_COMMITTER_NAME='$CORRECT_NAME'
+            export GIT_COMMITTER_EMAIL='$CORRECT_EMAIL'
+        " --tag-name-filter cat -- --all
+
+    - name: Force Push ALL branches at once
+      run: |
+       
         git push origin --force --all
