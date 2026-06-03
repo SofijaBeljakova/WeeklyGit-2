@@ -8,6 +8,8 @@ on:
 jobs:
   commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -16,9 +18,9 @@ jobs:
 
     - name: Set dynamic branch name
       run: |
-        export TZ="Europe/Tallinn"
-        START_SEC=$(date -d "2026-05-23" +%s)
-        CURRENT_SEC=$(date +%s)
+        
+        START_SEC=$(TZ="Europe/Tallinn" date -d "2026-05-23 00:00:00" +%s)
+        CURRENT_SEC=$(TZ="Europe/Tallinn" date +%s)
         DIFF_SEC=$(( CURRENT_SEC - START_SEC ))
         DAYS=$(( DIFF_SEC / 86400 ))
         WEEK=$(( (DAYS / 7) + 1 ))
@@ -26,17 +28,28 @@ jobs:
         if [ $WEEK -lt 1 ]; then WEEK=1; fi
         echo "BRANCH_NAME=week$WEEK" >> $GITHUB_ENV
 
+  
+    - name: Configure Git Author
+      run: |
+        git config --global user.name "SofijaBeljakova"
+        git config --global user.email "sofija.beljakova@tptlive.ee"
+
     - name: Run script
       run: python auto_commit.py
 
     - name: Commit and Push changes
       run: |
-        git config --global user.name "GitHub Action Bot"
-        git config --global user.email "actions@github.com"
         if [ ! -f README.md ]; then
           touch README.md
         fi
+        
+        
         git checkout $BRANCH_NAME || git checkout -b $BRANCH_NAME
+        
         git add README.md
-        git commit -m "Automatic commit for today" || echo "No changes to commit"
-        git push origin $BRANCH_NAME
+        
+        
+        git commit -m "Päevane uuendus ($BRANCH_NAME)" || echo "No changes to commit"
+        
+        
+        git push origin HEAD:$BRANCH_NAME
