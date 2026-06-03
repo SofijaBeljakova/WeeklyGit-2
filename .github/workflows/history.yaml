@@ -16,13 +16,13 @@ jobs:
 
     - name: Rewrite Author Info for ALL branches
       run: |
-      
+        # Впиши сюда свои реальные данные GitHub
         CORRECT_NAME="SofijaBeljakova"
-        CORRECT_EMAIL="sofija.beljakova@tptlive.ee"
+        CORRECT_EMAIL="sofija.beljakova@tptplive.ee"
         
         export FILTER_BRANCH_SQUELCH_WARNING=1
         
-      
+     
         git filter-branch -f --env-filter "
             export GIT_AUTHOR_NAME='$CORRECT_NAME'
             export GIT_AUTHOR_EMAIL='$CORRECT_EMAIL'
