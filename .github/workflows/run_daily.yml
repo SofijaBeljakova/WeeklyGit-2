@@ -9,16 +9,15 @@ jobs:
   commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Set dynamic branch name
+    - name: Set dynamic branch name and date
       run: |
-        
         START_SEC=$(TZ="Europe/Tallinn" date -d "2026-05-23 00:00:00" +%s)
         CURRENT_SEC=$(TZ="Europe/Tallinn" date +%s)
         DIFF_SEC=$(( CURRENT_SEC - START_SEC ))
@@ -26,9 +25,16 @@ jobs:
         WEEK=$(( (DAYS / 7) + 1 ))
         if [ $WEEK -gt 4 ]; then WEEK=4; fi
         if [ $WEEK -lt 1 ]; then WEEK=1; fi
-        echo "BRANCH_NAME=week$WEEK" >> $GITHUB_ENV
+        
 
-  
+        DAY_NUMBER=$(( DAYS + 1 ))
+      
+        FORMATTED_DATE=$(TZ="Europe/Tallinn" date +"%Y-%m-%d")
+        
+       
+        echo "BRANCH_NAME=week$WEEK" >> $GITHUB_ENV
+        echo "COMMIT_MSG=$FORMATTED_DATE: Päev $DAY_NUMBER" >> $GITHUB_ENV
+
     - name: Configure Git Author
       run: |
         git config --global user.name "SofijaBeljakova"
@@ -43,13 +49,10 @@ jobs:
           touch README.md
         fi
         
-        
         git checkout $BRANCH_NAME || git checkout -b $BRANCH_NAME
-        
         git add README.md
         
         
-        git commit -m "Päevane uuendus ($BRANCH_NAME)" || echo "No changes to commit"
-        
+        git commit -m "$COMMIT_MSG" || echo "No changes to commit"
         
         git push origin HEAD:$BRANCH_NAME
