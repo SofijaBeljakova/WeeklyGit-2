@@ -1,4 +1,4 @@
-name: Daily Auto Commit
+Name: Daily Auto Commit
 
 on:
   schedule:
@@ -11,7 +11,8 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -25,26 +26,33 @@ jobs:
         if [ $WEEK -gt 4 ]; then WEEK=4; fi
         if [ $WEEK -lt 1 ]; then WEEK=1; fi
         
+
         DAY_NUMBER=$(( DAYS + 1 ))
+      
         FORMATTED_DATE=$(TZ="Europe/Tallinn" date +"%Y-%m-%d")
         
+       
         echo "BRANCH_NAME=week$WEEK" >> $GITHUB_ENV
         echo "COMMIT_MSG=$FORMATTED_DATE: Päev $DAY_NUMBER" >> $GITHUB_ENV
 
-    - run: python auto_commit.py
+    - name: Configure Git Author
+      run: |
+        git config --global user.name "SofijaBeljakova"
+        git config --global user.email "sofija.beljakova@tptlive.ee"
+
+    - name: Run script
+      run: python auto_commit.py
 
     - name: Commit and Push changes
       run: |
-        git config user.name "SofijaBeljakova"
-        git config user.email "sofija.beljakova@tptlive.ee"
-        
         if [ ! -f README.md ]; then
           touch README.md
         fi
         
-        git fetch origin $BRANCH_NAME:$BRANCH_NAME || true
         git checkout $BRANCH_NAME || git checkout -b $BRANCH_NAME
-        
         git add README.md
+        
+        
         git commit -m "$COMMIT_MSG" || echo "No changes to commit"
-        git push origin $BRANCH_NAME
+        
+        git push origin HEAD:$BRANCH_NAME
