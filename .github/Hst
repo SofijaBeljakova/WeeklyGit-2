@@ -1,0 +1,35 @@
+name: Ultimate Force Rewrite History
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rewrite:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Fix History
+      run: |
+        export CORRECT_NAME="SofijaBeljakova"
+        export CORRECT_EMAIL="Sofija.beljakova@tptlive.ee"
+        export FILTER_BRANCH_SQUELCH_WARNING=1
+
+        TARGET_BRANCHES=("week1" "week2")
+
+        for branch in "${TARGET_BRANCHES[@]}"; do
+          git checkout -B $branch origin/$branch
+          
+          git filter-branch -f --env-filter '
+            export GIT_AUTHOR_NAME="$CORRECT_NAME"
+            export GIT_AUTHOR_EMAIL="$CORRECT_EMAIL"
+            export GIT_COMMITTER_NAME="$CORRECT_NAME"
+            export GIT_COMMITTER_EMAIL="$CORRECT_EMAIL"
+          ' --tag-name-filter cat -- HEAD
+          
+          git push origin $branch:$branch --force
+        done
