@@ -19,7 +19,7 @@ jobs:
         export CORRECT_EMAIL="sofija.beljakova@tptlive.ee"
         export FILTER_BRANCH_SQUELCH_WARNING=1
 
-        TARGET_BRANCHES=("week1" "week2")
+        TARGET_BRANCHES=("week1" "week2" "week3" "week4")
 
         for branch in "${TARGET_BRANCHES[@]}"; do
           git checkout -B $branch origin/$branch
